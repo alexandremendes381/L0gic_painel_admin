@@ -1,103 +1,243 @@
-import Image from "next/image";
+"use client"
+
+import { Header } from "@/components/header";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
+import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  position: string;
+  birthDate: string;
+  message: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+async function fetchUsers(): Promise<User[]> {
+  const response = await fetch("http://localhost:3001/api/users");
+  if (!response.ok) {
+    throw new Error("Erro ao buscar usuários");
+  }
+  return response.json();
+}
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [currentTime, setCurrentTime] = useState(new Date());
+  
+  const { data: users = [], isLoading } = useQuery({
+    queryKey: ["users"],
+    queryFn: fetchUsers,
+  });
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const totalUsers = users.length;
+  const recentUsers = users.filter(user => {
+    const createdAt = new Date(user.createdAt);
+    const today = new Date();
+    const diffTime = Math.abs(today.getTime() - createdAt.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays <= 7;
+  }).length;
+  
+  const positionStats = users.reduce((acc, user) => {
+    acc[user.position] = (acc[user.position] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+  
+  const topPositions = Object.entries(positionStats)
+    .sort(([,a], [,b]) => b - a)
+    .slice(0, 5);
+
+  const recentUsersData = users
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 5);
+
+  return (
+    <div className="flex flex-col min-h-screen">
+      <Header title="Dashboard" />
+      
+      <div className="flex-1 p-4 md:p-6">
+        <div className="space-y-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold">Bem-vindo ao Painel Administrativo</h1>
+              <p className="text-muted-foreground">
+                {currentTime.toLocaleDateString('pt-BR', { 
+                  weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+                })} • {currentTime.toLocaleTimeString('pt-BR')}
+              </p>
+            </div>
+          
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Total de Usuários
+                </CardTitle>
+                <span className="text-lg">👥</span>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {isLoading ? "..." : totalUsers.toLocaleString()}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {recentUsers} novos esta semana
+                </p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Cargos Únicos
+                </CardTitle>
+                <span className="text-lg">�</span>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {isLoading ? "..." : Object.keys(positionStats).length}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Diferentes posições cadastradas
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid gap-6 lg:grid-cols-3">
+            <Card className="lg:col-span-2">
+              <CardHeader>
+                <CardTitle>Distribuição por Cargos</CardTitle>
+                <CardDescription>
+                  Análise da distribuição de usuários por posição
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {isLoading ? (
+                  <div className="flex justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {topPositions.map(([position, count], index) => {
+                      const percentage = Math.round((count / totalUsers) * 100);
+                      return (
+                        <div key={position} className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">#{index + 1}</span>
+                              <Badge variant="secondary">{position}</Badge>
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              {count} usuários ({percentage}%)
+                            </div>
+                          </div>
+                          <Progress value={percentage} className="h-2" />
+                        </div>
+                      );
+                    })}
+                    {topPositions.length === 0 && (
+                      <p className="text-center text-muted-foreground py-4">
+                        Nenhum dado disponível
+                      </p>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Usuários Recentes</CardTitle>
+                <CardDescription>
+                  Últimos usuários cadastrados no sistema
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {isLoading ? (
+                  <div className="flex justify-center py-8">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {recentUsersData.map((user) => {
+                      const timeAgo = Math.floor(
+                        (new Date().getTime() - new Date(user.createdAt).getTime()) / (1000 * 60 * 60 * 24)
+                      );
+                      return (
+                        <div key={user.id} className="flex items-start gap-3 p-2 rounded-lg hover:bg-muted/50">
+                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm">
+                            {user.name.charAt(0).toUpperCase()}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium truncate">{user.name}</p>
+                            <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <Badge variant="outline" className="text-xs">
+                                {user.position}
+                              </Badge>
+                              <span className="text-xs text-muted-foreground">
+                                {timeAgo === 0 ? 'Hoje' : `${timeAgo}d atrás`}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {recentUsersData.length === 0 && (
+                      <p className="text-center text-muted-foreground py-4">
+                        Nenhum usuário cadastrado
+                      </p>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Ações Rápidas</CardTitle>
+              <CardDescription>
+                Acesso rápido às principais funcionalidades do sistema
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <Button variant="outline" className="h-20 flex-col gap-2">
+                  <span className="text-2xl">👤</span>
+                  <span>Gerenciar Usuários</span>
+                </Button>
+                <Button variant="outline" className="h-20 flex-col gap-2">
+                  <span className="text-2xl">📊</span>
+                  <span>Relatórios</span>
+                </Button>
+                <Button variant="outline" className="h-20 flex-col gap-2">
+                  <span className="text-2xl">⚙️</span>
+                  <span>Configurações</span>
+                </Button>
+                <Button variant="outline" className="h-20 flex-col gap-2">
+                  <span className="text-2xl">🔧</span>
+                  <span>Ferramentas</span>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
     </div>
   );
 }
