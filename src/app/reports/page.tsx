@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import { apiUrl, API_ENDPOINTS } from "@/lib/api";
 
 interface User {
   id: number;
@@ -19,7 +20,7 @@ interface User {
 }
 
 async function fetchUsers(): Promise<User[]> {
-  const response = await fetch("http://localhost:3001/api/users");
+  const response = await fetch(apiUrl(API_ENDPOINTS.USERS));
   if (!response.ok) {
     throw new Error("Erro ao buscar usuários");
   }
