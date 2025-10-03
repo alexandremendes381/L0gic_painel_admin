@@ -23,11 +23,6 @@ const menuItems = [
     href: "/reports",
     icon: "📊",
   },
-  {
-    title: "Configurações",
-    href: "/settings",
-    icon: "⚙️",
-  },
 ]
 
 interface SidebarProps {
