@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiUrl, API_ENDPOINTS } from "@/lib/api";
 
 interface CreateUserData {
   name: string;
@@ -14,7 +15,7 @@ interface UpdateUserData extends CreateUserData {
 }
 
 async function createUser(userData: CreateUserData) {
-  const response = await fetch("http://localhost:3001/api/users", {
+  const response = await fetch(apiUrl(API_ENDPOINTS.USERS), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -31,7 +32,7 @@ async function createUser(userData: CreateUserData) {
 
 async function updateUser(userData: UpdateUserData) {
   const { id, ...data } = userData;
-  const response = await fetch(`http://localhost:3001/api/users/${id}`, {
+  const response = await fetch(apiUrl(API_ENDPOINTS.USER_BY_ID(id)), {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -47,7 +48,7 @@ async function updateUser(userData: UpdateUserData) {
 }
 
 async function deleteUser(id: number) {
-  const response = await fetch(`http://localhost:3001/api/users/${id}`, {
+  const response = await fetch(apiUrl(API_ENDPOINTS.USER_BY_ID(id)), {
     method: "DELETE",
   });
 
