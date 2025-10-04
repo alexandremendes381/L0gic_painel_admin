@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { apiUrl, API_ENDPOINTS } from "@/lib/api";
+import { useRouter } from "next/navigation";
 
 interface User {
   id: number;
@@ -30,12 +31,33 @@ async function fetchUsers(): Promise<User[]> {
 }
 
 export default function Home() {
+  const router = useRouter();
   const [currentTime, setCurrentTime] = useState(new Date());
   
   const { data: users = [], isLoading } = useQuery({
     queryKey: ["users"],
     queryFn: fetchUsers,
   });
+
+  const handleQuickAction = (action: string) => {
+    switch (action) {
+      case 'users':
+        router.push('/users');
+        break;
+      case 'reports':
+        router.push('/reports');
+        break;
+      case 'settings':
+        alert('Configurações em desenvolvimento');
+        break;
+      case 'tools':
+        // Implementar futuramente ou mostrar modal
+        alert('Ferramentas em desenvolvimento');
+        break;
+      default:
+        break;
+    }
+  };
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -72,7 +94,7 @@ export default function Home() {
         <div className="space-y-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold">Bem-vindo ao Painel Administrativo</h1>
+              <h1 className="text-2xl font-bold text-foreground">Bem-vindo ao Painel Administrativo</h1>
               <p className="text-muted-foreground">
                 {currentTime.toLocaleDateString('pt-BR', { 
                   weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
@@ -88,7 +110,7 @@ export default function Home() {
                 <CardTitle className="text-sm font-medium">
                   Total de Usuários
                 </CardTitle>
-                <span className="text-lg">👥</span>
+                <div className="w-5 h-5 rounded-full border-2 border-current flex items-center justify-center text-xs font-bold">U</div>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
@@ -105,7 +127,7 @@ export default function Home() {
                 <CardTitle className="text-sm font-medium">
                   Cargos Únicos
                 </CardTitle>
-                <span className="text-lg">�</span>
+                <div className="w-5 h-5 border-2 border-current flex items-center justify-center text-xs font-bold">C</div>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
@@ -218,20 +240,36 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <Button variant="outline" className="h-20 flex-col gap-2">
-                  <span className="text-2xl">👤</span>
+                <Button 
+                  variant="outline" 
+                  className="h-20 flex-col gap-2 hover:bg-primary/10 hover:border-primary transition-colors"
+                  onClick={() => handleQuickAction('users')}
+                >
+                  <div className="w-8 h-8 rounded-full border-2 border-current flex items-center justify-center font-bold">U</div>
                   <span>Gerenciar Usuários</span>
                 </Button>
-                <Button variant="outline" className="h-20 flex-col gap-2">
-                  <span className="text-2xl">📊</span>
+                <Button 
+                  variant="outline" 
+                  className="h-20 flex-col gap-2 hover:bg-primary/10 hover:border-primary transition-colors"
+                  onClick={() => handleQuickAction('reports')}
+                >
+                  <div className="w-8 h-8 border-2 border-current flex items-center justify-center font-bold">R</div>
                   <span>Relatórios</span>
                 </Button>
-                <Button variant="outline" className="h-20 flex-col gap-2">
-                  <span className="text-2xl">⚙️</span>
+                <Button 
+                  variant="outline" 
+                  className="h-20 flex-col gap-2 hover:bg-primary/10 hover:border-primary transition-colors"
+                  onClick={() => handleQuickAction('settings')}
+                >
+                  <div className="w-8 h-8 border-2 border-current flex items-center justify-center font-bold">C</div>
                   <span>Configurações</span>
                 </Button>
-                <Button variant="outline" className="h-20 flex-col gap-2">
-                  <span className="text-2xl">🔧</span>
+                <Button 
+                  variant="outline" 
+                  className="h-20 flex-col gap-2 hover:bg-primary/10 hover:border-primary transition-colors"
+                  onClick={() => handleQuickAction('tools')}
+                >
+                  <div className="w-8 h-8 border-2 border-current flex items-center justify-center font-bold">F</div>
                   <span>Ferramentas</span>
                 </Button>
               </div>

@@ -53,7 +53,7 @@ export function UserDetailsModal({ user, onClose }: UserDetailsModalProps) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto m-4">
+      <div className="bg-card rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto m-4 border border-border">
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -62,7 +62,7 @@ export function UserDetailsModal({ user, onClose }: UserDetailsModalProps) {
                 <CardDescription>{user.email}</CardDescription>
               </div>
               <Button variant="ghost" size="sm" onClick={onClose}>
-                ❌
+                <div className="w-4 h-4 flex items-center justify-center text-sm font-bold">×</div>
               </Button>
             </div>
           </CardHeader>
@@ -93,7 +93,7 @@ export function UserDetailsModal({ user, onClose }: UserDetailsModalProps) {
             
             <div>
               <h3 className="font-medium text-sm text-muted-foreground mb-2">Mensagem</h3>
-              <p className="text-sm bg-gray-50 p-3 rounded-md">{originalMessage}</p>
+              <p className="text-sm bg-muted/50 text-foreground p-3 rounded-md border">{originalMessage}</p>
             </div>
             
             {trackingData && (

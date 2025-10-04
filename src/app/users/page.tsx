@@ -73,9 +73,6 @@ export default function UsersPage() {
                 <Button size="sm" onClick={() => setIsCreateModalOpen(true)} className="w-full sm:w-auto">
                   ➕ Novo Usuário
                 </Button>
-                <Button variant="outline" size="sm" className="w-full sm:w-auto">
-                  🔍 Filtros
-                </Button>
               </div>
               
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
@@ -148,7 +145,9 @@ export default function UsersPage() {
                                   <span className="text-xs text-muted-foreground">{user.phone}</span>
                                 </div>
                               </td>
-                              <td className="py-2 px-3 text-sm text-muted-foreground">{user.email}</td>
+                              <td className="py-2 px-3 text-sm text-muted-foreground max-w-[200px]">
+                                <span className="truncate block">{user.email}</span>
+                              </td>
                               <td className="py-2 px-3">
                                 <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-secondary text-secondary-foreground">
                                   {user.position}
@@ -160,10 +159,10 @@ export default function UsersPage() {
                               <td className="py-2 px-3">
                                 <div className="flex items-center gap-1">
                                   <Button variant="ghost" size="sm" onClick={() => setSelectedUser(user)} title="Ver detalhes" className="h-7 w-7 p-0">
-                                    👁️
+                                    <div className="w-3 h-3 flex items-center justify-center text-xs font-bold">⦿</div>
                                   </Button>
                                   <Button variant="ghost" size="sm" onClick={() => setUserToEdit(user)} title="Editar usuário" className="h-7 w-7 p-0">
-                                    ✏️
+                                    <div className="w-3 h-3 flex items-center justify-center text-xs font-bold">✎</div>
                                   </Button>
                                   <Button 
                                     variant="ghost" 
@@ -172,7 +171,7 @@ export default function UsersPage() {
                                     onClick={() => setUserToDelete({ id: user.id, name: user.name })}
                                     title="Excluir usuário"
                                   >
-                                    🗑️
+                                    <div className="w-3 h-3 flex items-center justify-center text-xs font-bold">×</div>
                                   </Button>
                                 </div>
                               </td>
@@ -208,16 +207,16 @@ export default function UsersPage() {
                     <Card key={user.id} className="p-3">
                       <div className="space-y-2">
                         <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <h3 className="font-medium text-base">{user.name}</h3>
-                            <p className="text-sm text-muted-foreground">{user.email}</p>
+                          <div className="flex-1 min-w-0 pr-2">
+                            <h3 className="font-medium text-base truncate">{user.name}</h3>
+                            <p className="text-sm text-muted-foreground truncate">{user.email}</p>
                           </div>
-                          <div className="flex items-center gap-1 ml-2">
+                          <div className="flex items-center gap-1 flex-shrink-0">
                             <Button variant="ghost" size="sm" onClick={() => setSelectedUser(user)} title="Ver detalhes" className="h-7 w-7 p-0">
-                              👁️
+                              <div className="w-3 h-3 flex items-center justify-center text-xs font-bold">⦿</div>
                             </Button>
                             <Button variant="ghost" size="sm" onClick={() => setUserToEdit(user)} title="Editar usuário" className="h-7 w-7 p-0">
-                              ✏️
+                              <div className="w-3 h-3 flex items-center justify-center text-xs font-bold">✎</div>
                             </Button>
                             <Button 
                               variant="ghost" 
@@ -226,7 +225,7 @@ export default function UsersPage() {
                               onClick={() => setUserToDelete({ id: user.id, name: user.name })}
                               title="Excluir usuário"
                             >
-                              🗑️
+                              <div className="w-3 h-3 flex items-center justify-center text-xs font-bold">×</div>
                             </Button>
                           </div>
                         </div>
