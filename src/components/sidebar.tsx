@@ -11,17 +11,17 @@ const menuItems = [
   {
     title: "Dashboard",
     href: "/",
-    icon: "🏠",
+    icon: "D",
   },
   {
     title: "Usuários",
     href: "/users",
-    icon: "👥",
+    icon: "U",
   },
   {
     title: "Relatórios",
     href: "/reports",
-    icon: "📊",
+    icon: "R",
   },
 ]
 
@@ -45,34 +45,39 @@ export function Sidebar({ className }: SidebarProps) {
 
       <div
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex flex-col bg-white border-r transition-all duration-300",
+          "fixed inset-y-0 left-0 z-50 flex flex-col bg-card border-r border-border transition-all duration-300",
           collapsed ? "w-16" : "w-64",
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
           className
         )}
       >
-        <div className="flex items-center justify-between p-4 border-b">
+        <div className="flex items-center justify-between p-4 border-b border-border">
           {!collapsed && (
-            <h1 className="text-xl font-bold text-gray-900">
-              Admin Panel
-            </h1>
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
+                <span className="text-primary-foreground font-bold text-sm">L</span>
+              </div>
+              <span className="font-semibold text-lg text-foreground">L0gic</span>
+            </div>
           )}
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setCollapsed(!collapsed)}
-              className="hidden lg:flex"
+              className="hidden lg:flex text-muted-foreground hover:text-foreground"
             >
-              {collapsed ? "▶️" : "◀️"}
+              <div className="w-4 h-4 flex items-center justify-center text-xs font-bold">
+                {collapsed ? "›" : "‹"}
+              </div>
             </Button>
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setMobileOpen(false)}
-              className="lg:hidden"
+              className="lg:hidden text-muted-foreground hover:text-foreground"
             >
-              ❌
+              <div className="w-4 h-4 flex items-center justify-center text-xs font-bold">X</div>
             </Button>
           </div>
         </div>
@@ -87,11 +92,13 @@ export function Sidebar({ className }: SidebarProps) {
                     "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                     pathname === item.href
                       ? "bg-primary text-primary-foreground"
-                      : "text-gray-700 hover:bg-gray-100",
+                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
                     collapsed && "justify-center"
                   )}
                 >
-                  <span className="text-lg">{item.icon}</span>
+                  <div className="w-5 h-5 rounded border border-current flex items-center justify-center text-xs font-bold">
+                    {item.icon}
+                  </div>
                   {!collapsed && <span>{item.title}</span>}
                 </Link>
               </li>
@@ -106,15 +113,15 @@ export function Sidebar({ className }: SidebarProps) {
             "flex items-center gap-3",
             collapsed && "justify-center"
           )}>
-            <div className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center">
-              <span className="text-sm font-medium">A</span>
+            <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
+              <span className="text-sm font-medium text-primary-foreground">A</span>
             </div>
             {!collapsed && (
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">
+                <p className="text-sm font-medium text-foreground truncate">
                   Admin User
                 </p>
-                <p className="text-xs text-gray-500 truncate">
+                <p className="text-xs text-muted-foreground truncate">
                   admin@example.com
                 </p>
               </div>
@@ -123,14 +130,16 @@ export function Sidebar({ className }: SidebarProps) {
         </div>
       </div>
 
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => setMobileOpen(true)}
-        className="fixed top-4 left-4 z-40 lg:hidden"
-      >
-        📋
-      </Button>
+      {!mobileOpen && (
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setMobileOpen(true)}
+          className="fixed top-2 left-2 z-[60] lg:hidden text-foreground hover:bg-accent bg-card/90 backdrop-blur-sm border border-border shadow-lg"
+        >
+          <div className="w-4 h-4 flex items-center justify-center text-sm font-bold">≡</div>
+        </Button>
+      )}
     </>
   )
 }

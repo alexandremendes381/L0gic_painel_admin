@@ -156,7 +156,10 @@ export default function ReportsPage() {
             <Card>
               <CardHeader className="text-center">
                 <CardTitle className="flex items-center justify-center gap-2">
-                  📊 Exportar Leads
+                  <div className="inline-flex items-center gap-2">
+                    <div className="w-4 h-4 border border-current flex items-center justify-center text-xs font-bold">R</div>
+                    Exportar Leads
+                  </div>
                 </CardTitle>
                 <CardDescription>
                   Faça o download de todos os leads em formato CSV ou Excel para análise externa
@@ -185,7 +188,10 @@ export default function ReportsPage() {
                 )}
 
                 <div className="space-y-3">
-                  <h3 className="font-semibold">📋 Dados incluídos na exportação:</h3>
+                  <h3 className="font-semibold flex items-center gap-2">
+                    <div className="w-4 h-4 border border-current flex items-center justify-center text-xs font-bold">D</div>
+                    Dados incluídos na exportação:
+                  </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
                     <div className="flex items-center gap-2">
                       <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
@@ -244,7 +250,7 @@ export default function ReportsPage() {
                       className="h-16 flex flex-col gap-1"
                       variant="outline"
                     >
-                      <span className="text-lg">📊</span>
+                      <div className="w-5 h-5 border border-current flex items-center justify-center text-xs font-bold">R</div>
                       <span>Exportar Excel</span>
                       <span className="text-xs text-muted-foreground">
                         Formato .xls para Microsoft Excel
@@ -262,7 +268,7 @@ export default function ReportsPage() {
 
                 {users.length === 0 && !isLoading && (
                   <div className="text-center py-8 text-muted-foreground">
-                    <span className="text-4xl mb-2 block">📋</span>
+                    <div className="w-12 h-12 border-2 border-current flex items-center justify-center text-xl font-bold mb-2">D</div>
                     <p>Nenhum lead encontrado para exportar</p>
                   </div>
                 )}
