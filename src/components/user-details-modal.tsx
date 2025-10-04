@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { MdClose, MdEdit } from "react-icons/md"
+import { formatDateSafe, formatPhoneSafe } from "@/lib/date-utils"
 
 interface User {
   id: number;
@@ -20,14 +21,6 @@ interface User {
 interface UserDetailsModalProps {
   user: User | null;
   onClose: () => void;
-}
-
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString("pt-BR");
-}
-
-function formatPhone(phone: string): string {
-  return phone.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
 }
 
 function parseTrackingData(message: string) {
@@ -71,7 +64,7 @@ export function UserDetailsModal({ user, onClose }: UserDetailsModalProps) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <h3 className="font-medium text-sm text-muted-foreground mb-1">Telefone</h3>
-                <p className="text-sm">{formatPhone(user.phone)}</p>
+                <p className="text-sm">{formatPhoneSafe(user.phone)}</p>
               </div>
               
               <div>
@@ -81,12 +74,12 @@ export function UserDetailsModal({ user, onClose }: UserDetailsModalProps) {
               
               <div>
                 <h3 className="font-medium text-sm text-muted-foreground mb-1">Data de Nascimento</h3>
-                <p className="text-sm">{formatDate(user.birthDate)}</p>
+                <p className="text-sm">{formatDateSafe(user.birthDate)}</p>
               </div>
               
               <div>
                 <h3 className="font-medium text-sm text-muted-foreground mb-1">Cadastrado em</h3>
-                <p className="text-sm">{formatDate(user.createdAt)}</p>
+                <p className="text-sm">{formatDateSafe(user.createdAt)}</p>
               </div>
             </div>
             
@@ -107,7 +100,7 @@ export function UserDetailsModal({ user, onClose }: UserDetailsModalProps) {
                       <strong>Referrer:</strong> {trackingData.referrer}
                     </div>
                     <div>
-                      <strong>Timestamp:</strong> {new Date(trackingData.timestamp).toLocaleString("pt-BR")}
+                      <strong>Timestamp:</strong> {formatDateSafe(trackingData.timestamp)}
                     </div>
                     <div>
                       <strong>Session ID:</strong> {trackingData.sessionId}

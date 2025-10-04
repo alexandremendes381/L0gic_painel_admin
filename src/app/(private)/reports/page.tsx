@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import API from "@/services/api";
 import useAuth from "@/hooks/useAuth";
+import { formatDateSafe } from "@/lib/date-utils";
 import { 
   MdAssessment, 
   MdDashboard, 
@@ -67,10 +68,10 @@ export default function ReportsPage() {
           user.email,
           user.phone,
           `"${user.position}"`,
-          new Date(user.birthDate).toLocaleDateString('pt-BR'),
+          formatDateSafe(user.birthDate),
           `"${user.message.replace(/"/g, '""')}"`,
-          new Date(user.createdAt).toLocaleDateString('pt-BR'),
-          new Date(user.updatedAt).toLocaleDateString('pt-BR')
+          formatDateSafe(user.createdAt),
+          formatDateSafe(user.updatedAt)
         ].join(','))
       ].join('\n');
 
@@ -78,7 +79,7 @@ export default function ReportsPage() {
       const link = document.createElement('a');
       const url = URL.createObjectURL(blob);
       link.setAttribute('href', url);
-      link.setAttribute('download', `leads_${new Date().toISOString().split('T')[0]}.csv`);
+      link.setAttribute('download', `leads_${Date.now()}.csv`);
       link.style.visibility = 'hidden';
       document.body.appendChild(link);
       link.click();
@@ -117,10 +118,10 @@ export default function ReportsPage() {
                 <td>${user.email}</td>
                 <td>${user.phone}</td>
                 <td>${user.position}</td>
-                <td>${new Date(user.birthDate).toLocaleDateString('pt-BR')}</td>
+                <td>${formatDateSafe(user.birthDate)}</td>
                 <td>${user.message}</td>
-                <td>${new Date(user.createdAt).toLocaleDateString('pt-BR')}</td>
-                <td>${new Date(user.updatedAt).toLocaleDateString('pt-BR')}</td>
+                <td>${formatDateSafe(user.createdAt)}</td>
+                <td>${formatDateSafe(user.updatedAt)}</td>
               </tr>
             `).join('')}
           </tbody>
@@ -133,7 +134,7 @@ export default function ReportsPage() {
       const link = document.createElement('a');
       const url = URL.createObjectURL(blob);
       link.setAttribute('href', url);
-      link.setAttribute('download', `leads_${new Date().toISOString().split('T')[0]}.xls`);
+      link.setAttribute('download', `leads_${Date.now()}.xls`);
       link.style.visibility = 'hidden';
       document.body.appendChild(link);
       link.click();

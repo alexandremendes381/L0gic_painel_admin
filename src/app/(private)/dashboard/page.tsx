@@ -6,10 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
 import API from "@/services/api";
 import { useRouter } from "next/navigation";
 import useAuth from "@/hooks/useAuth";
+import ClientOnly from "@/components/client-only";
 import { 
   MdPeople, 
   MdWorkOutline, 
@@ -42,10 +42,10 @@ async function fetchUsers(): Promise<User[]> {
 
 
 export default function Home() {
-  useAuth(); // protege a rota
+  useAuth();
   
   const router = useRouter();
-  const [currentTime, setCurrentTime] = useState(new Date());
+
   
   const { data: users = [], isLoading } = useQuery({
     queryKey: ["users"],
@@ -72,19 +72,24 @@ export default function Home() {
     }
   };
 
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
+
 
   const totalUsers = users.length;
-  const recentUsers = users.filter(user => {
-    const createdAt = new Date(user.createdAt);
-    const today = new Date();
-    const diffTime = Math.abs(today.getTime() - createdAt.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays <= 7;
-  }).length;
+  
+  // Função segura para calcular usuários recentes sem hydration mismatch
+  const getRecentUsersCount = () => {
+    if (typeof window === 'undefined') return 0; // No servidor retorna 0
+    
+    return users.filter(user => {
+      const createdAt = new Date(user.createdAt);
+      const today = new Date();
+      const diffTime = Math.abs(today.getTime() - createdAt.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      return diffDays <= 7;
+    }).length;
+  };
+  
+  const recentUsers = getRecentUsersCount();
   
   const positionStats = users.reduce((acc, user) => {
     acc[user.position] = (acc[user.position] || 0) + 1;
@@ -109,9 +114,7 @@ export default function Home() {
             <div>
               <h1 className="text-2xl font-bold text-foreground">Bem-vindo ao Painel Administrativo</h1>
               <p className="text-muted-foreground">
-                {currentTime.toLocaleDateString('pt-BR', { 
-                  weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-                })} • {currentTime.toLocaleTimeString('pt-BR')}
+                Gerencie usuários, visualize relatórios e monitore as atividades do sistema.
               </p>
             </div>
           
@@ -203,16 +206,21 @@ export default function Home() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {isLoading ? (
+                <ClientOnly fallback={
                   <div className="flex justify-center py-8">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
                   </div>
-                ) : (
-                  <div className="space-y-4">
-                    {recentUsersData.map((user) => {
-                      const timeAgo = Math.floor(
-                        (new Date().getTime() - new Date(user.createdAt).getTime()) / (1000 * 60 * 60 * 24)
-                      );
+                }>
+                  {isLoading ? (
+                    <div className="flex justify-center py-8">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {recentUsersData.map((user) => {
+                        const timeAgo = Math.floor(
+                          (new Date().getTime() - new Date(user.createdAt).getTime()) / (1000 * 60 * 60 * 24)
+                        );
                       return (
                         <div key={user.id} className="flex items-start gap-3 p-2 rounded-lg hover:bg-muted/50">
                           <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm">
@@ -233,13 +241,14 @@ export default function Home() {
                         </div>
                       );
                     })}
-                    {recentUsersData.length === 0 && (
-                      <p className="text-center text-muted-foreground py-4">
-                        Nenhum usuário cadastrado
-                      </p>
-                    )}
-                  </div>
-                )}
+                      {recentUsersData.length === 0 && (
+                        <p className="text-center text-muted-foreground py-4">
+                          Nenhum usuário cadastrado
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </ClientOnly>
               </CardContent>
             </Card>
           </div>
