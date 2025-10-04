@@ -3,12 +3,25 @@
 import { Header } from "@/components/header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useQuery } from "@tanstack/react-query";
 import { UserDetailsModal } from "@/components/user-details-modal";
 import { UserFormModal } from "@/components/user-form-modal";
 import { DeleteUserModal } from "@/components/delete-user-modal";
-import { useState } from "react";
-import { apiUrl, API_ENDPOINTS } from "@/lib/api";
+import { useState, useEffect } from "react";
+import { z } from "zod";
+import API from "@/services/api";
+import useAuth from "@/hooks/useAuth";
+import { formatDateSafe } from "@/lib/date-utils";
+import { 
+  MdVisibility, 
+  MdEdit, 
+  MdDelete,
+  MdChevronLeft,
+  MdChevronRight,
+  MdPeople,
+  MdSearch,
+  MdAdd,
+  MdClear
+} from "react-icons/md";
 
 interface User {
   id: number;
@@ -22,32 +35,54 @@ interface User {
   updatedAt: string;
 }
 
-async function fetchUsers(): Promise<User[]> {
-  const response = await fetch(apiUrl(API_ENDPOINTS.USERS));
-  if (!response.ok) {
-    throw new Error("Erro ao buscar usuários");
-  }
-  return response.json();
-}
+const searchSchema = z.string().regex(/^[\w\s@.]*$/, "Campo inválido"); // aceita letras, números, espaços, @ e .
 
 export default function UsersPage() {
+  useAuth(); // protege a rota
+  
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [userToEdit, setUserToEdit] = useState<User | null>(null);
   const [userToDelete, setUserToDelete] = useState<{ id: number; name: string } | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [nameFilter, setNameFilter] = useState("");
-  const [emailFilter, setEmailFilter] = useState("");
-  
-  const { data: users = [], isLoading, error } = useQuery({
-    queryKey: ["users"],
-    queryFn: fetchUsers,
-  });
+  const [query, setQuery] = useState("");
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [searchError, setSearchError] = useState("");
 
-  const filteredUsers = users.filter(user => {
-    const matchesName = nameFilter === "" || user.name.toLowerCase().includes(nameFilter.toLowerCase());
-    const matchesEmail = emailFilter === "" || user.email.toLowerCase().includes(emailFilter.toLowerCase());
-    return matchesName && matchesEmail;
-  });
+  const fetchUsers = async (q?: string) => {
+    setLoading(true);
+    try {
+      const res = q
+        ? await API.get(`/api/users/search?q=${encodeURIComponent(q)}`)
+        : await API.get("/api/users");
+      setUsers(res.data || []);
+    } catch (error) {
+      console.error("Erro ao buscar usuários:", error);
+      setUsers([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  useEffect(() => {
+    const parseResult = searchSchema.safeParse(query);
+    if (!parseResult.success) {
+      setSearchError(parseResult.error.issues[0].message);
+      return;
+    } else {
+      setSearchError("");
+    }
+
+    const delayDebounce = setTimeout(() => {
+      fetchUsers(query || undefined);
+    }, 300); // debounce simples
+
+    return () => clearTimeout(delayDebounce);
+  }, [query]);
 
   return (
     <div className="flex flex-col">
@@ -55,69 +90,52 @@ export default function UsersPage() {
       
       <div className="flex-1 p-4 md:p-6">
         <div className="space-y-4 md:space-y-6">
-          {isLoading && (
-            <div className="flex justify-center items-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <Button size="sm" onClick={() => setIsCreateModalOpen(true)} className="w-full sm:w-auto">
+                <MdAdd size={16} className="mr-1" />
+                Novo Usuário
+              </Button>
             </div>
-          )}
-          
-          {error && (
-            <div className="text-center py-8 text-red-500">
-              Erro ao carregar usuários: {error.message}
-            </div>
-          )}
-          
-          {!isLoading && !error && (
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                <Button size="sm" onClick={() => setIsCreateModalOpen(true)} className="w-full sm:w-auto">
-                  ➕ Novo Usuário
+            
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+              <div className="relative flex-1 sm:flex-none">
+                <span className="absolute left-2 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+                  <MdSearch size={16} />
+                </span>
+                <input
+                  type="text"
+                  placeholder="Pesquisar por nome ou e-mail"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  className="w-full sm:w-64 pl-8 pr-4 py-2 text-sm border border-input rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+              {query && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setQuery("")}
+                  className="flex items-center gap-1"
+                >
+                  <MdClear size={16} className="mr-1" />
+                  Limpar
                 </Button>
-              </div>
-              
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
-                <div className="relative flex-1 sm:flex-none">
-                  <span className="absolute left-2 top-1/2 transform -translate-y-1/2 text-muted-foreground">
-                    �
-                  </span>
-                  <input
-                    type="text"
-                    placeholder="Filtrar por nome..."
-                    value={nameFilter}
-                    onChange={(e) => setNameFilter(e.target.value)}
-                    className="w-full sm:w-48 pl-8 pr-4 py-2 text-sm border border-input rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring"
-                  />
-                </div>
-                <div className="relative flex-1 sm:flex-none">
-                  <span className="absolute left-2 top-1/2 transform -translate-y-1/2 text-muted-foreground">
-                    ✉️
-                  </span>
-                  <input
-                    type="text"
-                    placeholder="Filtrar por email..."
-                    value={emailFilter}
-                    onChange={(e) => setEmailFilter(e.target.value)}
-                    className="w-full sm:w-48 pl-8 pr-4 py-2 text-sm border border-input rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring"
-                  />
-                </div>
-                {(nameFilter || emailFilter) && (
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => {
-                      setNameFilter("");
-                      setEmailFilter("");
-                    }}
-                    className="flex items-center gap-1"
-                  >
-                    🧹 Limpar
-                  </Button>
-                )}
-              </div>
+              )}
             </div>
+          </div>
+          
+          {searchError && (
+            <p className="text-red-500 text-sm">{searchError}</p>
           )}
 
-          {!isLoading && !error && (
+          <div className="relative">
+            {loading && (
+              <div className="absolute top-0 left-0 right-0 bg-background/80 backdrop-blur-sm z-10 flex justify-center items-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            )}
+            
             <>
               <Card className="hidden md:block">
                 <CardHeader>
@@ -136,8 +154,8 @@ export default function UsersPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {filteredUsers.length > 0 ? (
-                          filteredUsers.map((user) => (
+                        {users.length > 0 ? (
+                          users.map((user) => (
                             <tr key={user.id} className="border-b hover:bg-muted/50">
                               <td className="py-2 px-3">
                                 <div className="flex flex-col">
@@ -154,15 +172,15 @@ export default function UsersPage() {
                                 </span>
                               </td>
                               <td className="py-2 px-3 text-xs text-muted-foreground">
-                                {new Date(user.createdAt).toLocaleDateString('pt-BR')}
+                                {formatDateSafe(user.createdAt)}
                               </td>
                               <td className="py-2 px-3">
                                 <div className="flex items-center gap-1">
                                   <Button variant="ghost" size="sm" onClick={() => setSelectedUser(user)} title="Ver detalhes" className="h-7 w-7 p-0">
-                                    <div className="w-3 h-3 flex items-center justify-center text-xs font-bold">⦿</div>
+                                    <MdVisibility size={12} />
                                   </Button>
                                   <Button variant="ghost" size="sm" onClick={() => setUserToEdit(user)} title="Editar usuário" className="h-7 w-7 p-0">
-                                    <div className="w-3 h-3 flex items-center justify-center text-xs font-bold">✎</div>
+                                    <MdEdit size={12} />
                                   </Button>
                                   <Button 
                                     variant="ghost" 
@@ -171,7 +189,7 @@ export default function UsersPage() {
                                     onClick={() => setUserToDelete({ id: user.id, name: user.name })}
                                     title="Excluir usuário"
                                   >
-                                    <div className="w-3 h-3 flex items-center justify-center text-xs font-bold">×</div>
+                                    <MdDelete size={12} />
                                   </Button>
                                 </div>
                               </td>
@@ -180,15 +198,15 @@ export default function UsersPage() {
                         ) : (
                           <tr>
                             <td colSpan={5} className="py-8 text-center text-muted-foreground">
-                              {(nameFilter || emailFilter) ? (
+                              {query ? (
                                 <div className="flex flex-col items-center gap-2">
-                                  <span className="text-2xl">🔍</span>
+                                  <MdSearch size={48} className="text-muted-foreground" />
                                   <p>Nenhum usuário encontrado</p>
-                                  <p className="text-sm">Tente ajustar os filtros aplicados</p>
+                                  <p className="text-sm">Tente ajustar o termo de busca</p>
                                 </div>
                               ) : (
                                 <div className="flex flex-col items-center gap-2">
-                                  <span className="text-2xl">👥</span>
+                                  <MdPeople size={48} className="text-muted-foreground" />
                                   <p>Nenhum usuário cadastrado</p>
                                 </div>
                               )}
@@ -202,8 +220,8 @@ export default function UsersPage() {
               </Card>
 
               <div className="md:hidden space-y-3">
-                {filteredUsers.length > 0 ? (
-                  filteredUsers.map((user) => (
+                {users.length > 0 ? (
+                  users.map((user) => (
                     <Card key={user.id} className="p-3">
                       <div className="space-y-2">
                         <div className="flex items-start justify-between">
@@ -213,10 +231,10 @@ export default function UsersPage() {
                           </div>
                           <div className="flex items-center gap-1 flex-shrink-0">
                             <Button variant="ghost" size="sm" onClick={() => setSelectedUser(user)} title="Ver detalhes" className="h-7 w-7 p-0">
-                              <div className="w-3 h-3 flex items-center justify-center text-xs font-bold">⦿</div>
+                              <MdVisibility size={12} />
                             </Button>
                             <Button variant="ghost" size="sm" onClick={() => setUserToEdit(user)} title="Editar usuário" className="h-7 w-7 p-0">
-                              <div className="w-3 h-3 flex items-center justify-center text-xs font-bold">✎</div>
+                              <MdEdit size={12} />
                             </Button>
                             <Button 
                               variant="ghost" 
@@ -225,7 +243,7 @@ export default function UsersPage() {
                               onClick={() => setUserToDelete({ id: user.id, name: user.name })}
                               title="Excluir usuário"
                             >
-                              <div className="w-3 h-3 flex items-center justify-center text-xs font-bold">×</div>
+                              <MdDelete size={12} />
                             </Button>
                           </div>
                         </div>
@@ -243,7 +261,7 @@ export default function UsersPage() {
                           </div>
                           <div className="flex flex-col">
                             <span className="text-xs text-muted-foreground">Criado em</span>
-                            <span className="text-sm">{new Date(user.createdAt).toLocaleDateString('pt-BR')}</span>
+                            <span className="text-sm">{formatDateSafe(user.createdAt)}</span>
                           </div>
                         </div>
                       </div>
@@ -252,16 +270,16 @@ export default function UsersPage() {
                 ) : (
                   <Card className="p-6">
                     <div className="text-center text-muted-foreground">
-                      {(nameFilter || emailFilter) ? (
+                      {query ? (
                         <div className="flex flex-col items-center gap-2">
-                          <span className="text-4xl">🔍</span>
+                          <MdSearch size={64} className="text-muted-foreground" />
                           <p className="text-lg">Nenhum usuário encontrado</p>
-                          <p className="text-sm">com os filtros aplicados</p>
-                          <p className="text-xs">Tente ajustar os filtros</p>
+                          <p className="text-sm">com o termo de busca</p>
+                          <p className="text-xs">Tente outras palavras-chave</p>
                         </div>
                       ) : (
                         <div className="flex flex-col items-center gap-2">
-                          <span className="text-4xl">👥</span>
+                          <MdPeople size={64} className="text-muted-foreground" />
                           <p className="text-lg">Nenhum usuário cadastrado</p>
                         </div>
                       )}
@@ -270,28 +288,28 @@ export default function UsersPage() {
                 )}
               </div>
             </>
-          )}
+          </div>
 
-          {!isLoading && !error && (
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm text-muted-foreground text-center sm:text-left">
-                Mostrando {filteredUsers.length} de {users.length} usuários
-                {(nameFilter || emailFilter) && (
-                  <span className="block sm:inline sm:ml-2 text-primary">
-                    • Filtros: {nameFilter && `Nome: "${nameFilter}"`}{nameFilter && emailFilter && ', '}{emailFilter && `Email: "${emailFilter}"`}
-                  </span>
-                )}
-              </p>
-              <div className="flex items-center justify-center gap-2 sm:justify-end">
-                <Button variant="outline" size="sm" disabled className="flex-1 sm:flex-none">
-                  ⬅️ Anterior
-                </Button>
-                <Button variant="outline" size="sm" disabled className="flex-1 sm:flex-none">
-                  ➡️ Próximo
-                </Button>
-              </div>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-muted-foreground text-center sm:text-left">
+              Mostrando {users.length} usuários
+              {query && (
+                <span className="block sm:inline sm:ml-2 text-primary">
+                  • Busca: &quot;{query}&quot;
+                </span>
+              )}
+            </p>
+            <div className="flex items-center justify-center gap-2 sm:justify-end">
+              <Button variant="outline" size="sm" disabled className="flex-1 sm:flex-none">
+                <MdChevronLeft size={16} className="mr-1" />
+                Anterior
+              </Button>
+              <Button variant="outline" size="sm" disabled className="flex-1 sm:flex-none">
+                Próximo
+                <MdChevronRight size={16} className="ml-1" />
+              </Button>
             </div>
-          )}
+          </div>
         </div>
       </div>
       

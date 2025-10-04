@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useCreateUser, useUpdateUser } from "@/hooks/use-user-mutations"
+import { MdClose } from "react-icons/md"
 
 interface User {
   id?: number;
@@ -109,7 +110,7 @@ export function UserFormModal({ user, isOpen, onClose }: UserFormModalProps) {
                 </CardDescription>
               </div>
               <Button variant="ghost" size="sm" onClick={handleClose}>
-                <div className="w-4 h-4 flex items-center justify-center text-sm font-bold">×</div>
+                <MdClose size={16} />
               </Button>
             </div>
           </CardHeader>

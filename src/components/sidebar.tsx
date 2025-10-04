@@ -6,22 +6,31 @@ import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
+import { 
+  MdDashboard, 
+  MdPeople, 
+  MdAssessment, 
+  MdMenu, 
+  MdClose, 
+  MdChevronLeft, 
+  MdChevronRight 
+} from "react-icons/md"
 
 const menuItems = [
   {
     title: "Dashboard",
-    href: "/",
-    icon: "D",
+    href: "/dashboard",
+    icon: MdDashboard,
   },
   {
     title: "Usuários",
     href: "/users",
-    icon: "U",
+    icon: MdPeople,
   },
   {
     title: "Relatórios",
     href: "/reports",
-    icon: "R",
+    icon: MdAssessment,
   },
 ]
 
@@ -67,9 +76,7 @@ export function Sidebar({ className }: SidebarProps) {
               onClick={() => setCollapsed(!collapsed)}
               className="hidden lg:flex text-muted-foreground hover:text-foreground"
             >
-              <div className="w-4 h-4 flex items-center justify-center text-xs font-bold">
-                {collapsed ? "›" : "‹"}
-              </div>
+              {collapsed ? <MdChevronRight size={16} /> : <MdChevronLeft size={16} />}
             </Button>
             <Button
               variant="ghost"
@@ -77,7 +84,7 @@ export function Sidebar({ className }: SidebarProps) {
               onClick={() => setMobileOpen(false)}
               className="lg:hidden text-muted-foreground hover:text-foreground"
             >
-              <div className="w-4 h-4 flex items-center justify-center text-xs font-bold">X</div>
+              <MdClose size={16} />
             </Button>
           </div>
         </div>
@@ -96,9 +103,7 @@ export function Sidebar({ className }: SidebarProps) {
                     collapsed && "justify-center"
                   )}
                 >
-                  <div className="w-5 h-5 rounded border border-current flex items-center justify-center text-xs font-bold">
-                    {item.icon}
-                  </div>
+                  <item.icon size={20} />
                   {!collapsed && <span>{item.title}</span>}
                 </Link>
               </li>
@@ -137,7 +142,7 @@ export function Sidebar({ className }: SidebarProps) {
           onClick={() => setMobileOpen(true)}
           className="fixed top-2 left-2 z-[60] lg:hidden text-foreground hover:bg-accent bg-card/90 backdrop-blur-sm border border-border shadow-lg"
         >
-          <div className="w-4 h-4 flex items-center justify-center text-sm font-bold">≡</div>
+          <MdMenu size={16} />
         </Button>
       )}
     </>
