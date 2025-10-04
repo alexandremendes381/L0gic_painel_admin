@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiUrl, API_ENDPOINTS } from "@/lib/api";
+import API from "@/services/api";
 
 interface CreateUserData {
   name: string;
@@ -15,48 +15,34 @@ interface UpdateUserData extends CreateUserData {
 }
 
 async function createUser(userData: CreateUserData) {
-  const response = await fetch(apiUrl(API_ENDPOINTS.USERS), {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(userData),
-  });
+  const response = await API.post("/api/users", userData);
 
-  if (!response.ok) {
+  if (response.status >= 400) {
     throw new Error("Erro ao criar usuário");
   }
 
-  return response.json();
+  return response.data;
 }
 
 async function updateUser(userData: UpdateUserData) {
   const { id, ...data } = userData;
-  const response = await fetch(apiUrl(API_ENDPOINTS.USER_BY_ID(id)), {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  });
+  const response = await API.put(`/api/users/${id}`, data);
 
-  if (!response.ok) {
+  if (response.status >= 400) {
     throw new Error("Erro ao atualizar usuário");
   }
 
-  return response.json();
+  return response.data;
 }
 
 async function deleteUser(id: number) {
-  const response = await fetch(apiUrl(API_ENDPOINTS.USER_BY_ID(id)), {
-    method: "DELETE",
-  });
+  const response = await API.delete(`/api/users/${id}`);
 
-  if (!response.ok) {
+  if (response.status >= 400) {
     throw new Error("Erro ao deletar usuário");
   }
 
-  return response.json();
+  return response.data;
 }
 
 export function useCreateUser() {

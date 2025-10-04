@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useDeleteUser } from "@/hooks/use-user-mutations"
+import { MdDelete, MdClose } from "react-icons/md"
 
 interface DeleteUserModalProps {
   user: { id: number; name: string } | null;
@@ -34,7 +35,7 @@ export function DeleteUserModal({ user, isOpen, onClose }: DeleteUserModalProps)
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="text-xl text-red-600 flex items-center gap-2">
-                  <div className="w-5 h-5 flex items-center justify-center text-sm font-bold border border-current rounded">×</div>
+                  <MdDelete size={20} />
                   Deletar Usuário
                 </CardTitle>
                 <CardDescription>
@@ -42,7 +43,7 @@ export function DeleteUserModal({ user, isOpen, onClose }: DeleteUserModalProps)
                 </CardDescription>
               </div>
               <Button variant="ghost" size="sm" onClick={onClose}>
-                <div className="w-4 h-4 flex items-center justify-center text-sm font-bold">×</div>
+                <MdClose size={16} />
               </Button>
             </div>
           </CardHeader>
@@ -66,7 +67,12 @@ export function DeleteUserModal({ user, isOpen, onClose }: DeleteUserModalProps)
                 onClick={handleDelete}
                 disabled={deleteUserMutation.isPending}
               >
-                {deleteUserMutation.isPending ? "Deletando..." : "🗑️ Deletar"}
+                {deleteUserMutation.isPending ? "Deletando..." : (
+                  <>
+                    <MdDelete size={16} className="mr-1" />
+                    Deletar
+                  </>
+                )}
               </Button>
             </div>
           </CardContent>

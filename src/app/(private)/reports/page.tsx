@@ -5,7 +5,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { apiUrl, API_ENDPOINTS } from "@/lib/api";
+import API from "@/services/api";
+import useAuth from "@/hooks/useAuth";
+import { 
+  MdAssessment, 
+  MdDashboard, 
+  MdDownload 
+} from "react-icons/md";
 
 interface User {
   id: number;
@@ -20,14 +26,16 @@ interface User {
 }
 
 async function fetchUsers(): Promise<User[]> {
-  const response = await fetch(apiUrl(API_ENDPOINTS.USERS));
-  if (!response.ok) {
+  const response = await API.get("/api/users");
+  if (response.status >= 400) {
     throw new Error("Erro ao buscar usuários");
   }
-  return response.json();
+  return response.data;
 }
 
 export default function ReportsPage() {
+  useAuth(); // protege a rota
+  
   const [isExporting, setIsExporting] = useState(false);
 
   const { data: users = [], isLoading } = useQuery({
@@ -157,7 +165,7 @@ export default function ReportsPage() {
               <CardHeader className="text-center">
                 <CardTitle className="flex items-center justify-center gap-2">
                   <div className="inline-flex items-center gap-2">
-                    <div className="w-4 h-4 border border-current flex items-center justify-center text-xs font-bold">R</div>
+                    <MdAssessment size={16} />
                     Exportar Leads
                   </div>
                 </CardTitle>
@@ -189,7 +197,7 @@ export default function ReportsPage() {
 
                 <div className="space-y-3">
                   <h3 className="font-semibold flex items-center gap-2">
-                    <div className="w-4 h-4 border border-current flex items-center justify-center text-xs font-bold">D</div>
+                    <MdDownload size={16} />
                     Dados incluídos na exportação:
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
@@ -250,7 +258,7 @@ export default function ReportsPage() {
                       className="h-16 flex flex-col gap-1"
                       variant="outline"
                     >
-                      <div className="w-5 h-5 border border-current flex items-center justify-center text-xs font-bold">R</div>
+                      <MdAssessment size={20} />
                       <span>Exportar Excel</span>
                       <span className="text-xs text-muted-foreground">
                         Formato .xls para Microsoft Excel
@@ -268,7 +276,7 @@ export default function ReportsPage() {
 
                 {users.length === 0 && !isLoading && (
                   <div className="text-center py-8 text-muted-foreground">
-                    <div className="w-12 h-12 border-2 border-current flex items-center justify-center text-xl font-bold mb-2">D</div>
+                    <MdDashboard size={48} className="mb-2" />
                     <p>Nenhum lead encontrado para exportar</p>
                   </div>
                 )}

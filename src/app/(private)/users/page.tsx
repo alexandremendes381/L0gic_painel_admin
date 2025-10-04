@@ -8,7 +8,18 @@ import { UserDetailsModal } from "@/components/user-details-modal";
 import { UserFormModal } from "@/components/user-form-modal";
 import { DeleteUserModal } from "@/components/delete-user-modal";
 import { useState } from "react";
-import { apiUrl, API_ENDPOINTS } from "@/lib/api";
+import API from "@/services/api";
+import useAuth from "@/hooks/useAuth";
+import { 
+  MdVisibility, 
+  MdEdit, 
+  MdDelete,
+  MdChevronLeft,
+  MdChevronRight,
+  MdEmail,
+  MdPeople,
+  MdSearch
+} from "react-icons/md";
 
 interface User {
   id: number;
@@ -23,14 +34,16 @@ interface User {
 }
 
 async function fetchUsers(): Promise<User[]> {
-  const response = await fetch(apiUrl(API_ENDPOINTS.USERS));
-  if (!response.ok) {
+  const response = await API.get("/api/users");
+  if (response.status >= 400) {
     throw new Error("Erro ao buscar usuários");
   }
-  return response.json();
+  return response.data;
 }
 
 export default function UsersPage() {
+  useAuth(); // protege a rota
+  
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [userToEdit, setUserToEdit] = useState<User | null>(null);
   const [userToDelete, setUserToDelete] = useState<{ id: number; name: string } | null>(null);
@@ -90,7 +103,7 @@ export default function UsersPage() {
                 </div>
                 <div className="relative flex-1 sm:flex-none">
                   <span className="absolute left-2 top-1/2 transform -translate-y-1/2 text-muted-foreground">
-                    ✉️
+                    <MdEmail size={16} />
                   </span>
                   <input
                     type="text"
@@ -159,10 +172,10 @@ export default function UsersPage() {
                               <td className="py-2 px-3">
                                 <div className="flex items-center gap-1">
                                   <Button variant="ghost" size="sm" onClick={() => setSelectedUser(user)} title="Ver detalhes" className="h-7 w-7 p-0">
-                                    <div className="w-3 h-3 flex items-center justify-center text-xs font-bold">⦿</div>
+                                    <MdVisibility size={12} />
                                   </Button>
                                   <Button variant="ghost" size="sm" onClick={() => setUserToEdit(user)} title="Editar usuário" className="h-7 w-7 p-0">
-                                    <div className="w-3 h-3 flex items-center justify-center text-xs font-bold">✎</div>
+                                    <MdEdit size={12} />
                                   </Button>
                                   <Button 
                                     variant="ghost" 
@@ -171,7 +184,7 @@ export default function UsersPage() {
                                     onClick={() => setUserToDelete({ id: user.id, name: user.name })}
                                     title="Excluir usuário"
                                   >
-                                    <div className="w-3 h-3 flex items-center justify-center text-xs font-bold">×</div>
+                                    <MdDelete size={12} />
                                   </Button>
                                 </div>
                               </td>
@@ -182,13 +195,13 @@ export default function UsersPage() {
                             <td colSpan={5} className="py-8 text-center text-muted-foreground">
                               {(nameFilter || emailFilter) ? (
                                 <div className="flex flex-col items-center gap-2">
-                                  <span className="text-2xl">🔍</span>
+                                  <MdSearch size={48} className="text-muted-foreground" />
                                   <p>Nenhum usuário encontrado</p>
                                   <p className="text-sm">Tente ajustar os filtros aplicados</p>
                                 </div>
                               ) : (
                                 <div className="flex flex-col items-center gap-2">
-                                  <span className="text-2xl">👥</span>
+                                  <MdPeople size={48} className="text-muted-foreground" />
                                   <p>Nenhum usuário cadastrado</p>
                                 </div>
                               )}
@@ -213,10 +226,10 @@ export default function UsersPage() {
                           </div>
                           <div className="flex items-center gap-1 flex-shrink-0">
                             <Button variant="ghost" size="sm" onClick={() => setSelectedUser(user)} title="Ver detalhes" className="h-7 w-7 p-0">
-                              <div className="w-3 h-3 flex items-center justify-center text-xs font-bold">⦿</div>
+                              <MdVisibility size={12} />
                             </Button>
                             <Button variant="ghost" size="sm" onClick={() => setUserToEdit(user)} title="Editar usuário" className="h-7 w-7 p-0">
-                              <div className="w-3 h-3 flex items-center justify-center text-xs font-bold">✎</div>
+                              <MdEdit size={12} />
                             </Button>
                             <Button 
                               variant="ghost" 
@@ -225,7 +238,7 @@ export default function UsersPage() {
                               onClick={() => setUserToDelete({ id: user.id, name: user.name })}
                               title="Excluir usuário"
                             >
-                              <div className="w-3 h-3 flex items-center justify-center text-xs font-bold">×</div>
+                              <MdDelete size={12} />
                             </Button>
                           </div>
                         </div>
@@ -254,14 +267,14 @@ export default function UsersPage() {
                     <div className="text-center text-muted-foreground">
                       {(nameFilter || emailFilter) ? (
                         <div className="flex flex-col items-center gap-2">
-                          <span className="text-4xl">🔍</span>
+                          <MdSearch size={64} className="text-muted-foreground" />
                           <p className="text-lg">Nenhum usuário encontrado</p>
                           <p className="text-sm">com os filtros aplicados</p>
                           <p className="text-xs">Tente ajustar os filtros</p>
                         </div>
                       ) : (
                         <div className="flex flex-col items-center gap-2">
-                          <span className="text-4xl">👥</span>
+                          <MdPeople size={64} className="text-muted-foreground" />
                           <p className="text-lg">Nenhum usuário cadastrado</p>
                         </div>
                       )}
@@ -284,10 +297,12 @@ export default function UsersPage() {
               </p>
               <div className="flex items-center justify-center gap-2 sm:justify-end">
                 <Button variant="outline" size="sm" disabled className="flex-1 sm:flex-none">
-                  ⬅️ Anterior
+                  <MdChevronLeft size={16} className="mr-1" />
+                  Anterior
                 </Button>
                 <Button variant="outline" size="sm" disabled className="flex-1 sm:flex-none">
-                  ➡️ Próximo
+                  Próximo
+                  <MdChevronRight size={16} className="ml-1" />
                 </Button>
               </div>
             </div>

@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
+import { MdClose, MdEdit } from "react-icons/md"
 
 interface User {
   id: number;
@@ -62,7 +63,7 @@ export function UserDetailsModal({ user, onClose }: UserDetailsModalProps) {
                 <CardDescription>{user.email}</CardDescription>
               </div>
               <Button variant="ghost" size="sm" onClick={onClose}>
-                <div className="w-4 h-4 flex items-center justify-center text-sm font-bold">×</div>
+                <MdClose size={16} />
               </Button>
             </div>
           </CardHeader>
@@ -123,7 +124,8 @@ export function UserDetailsModal({ user, onClose }: UserDetailsModalProps) {
                 Fechar
               </Button>
               <Button>
-                ✏️ Editar
+                <MdEdit size={16} className="mr-1" />
+                Editar
               </Button>
             </div>
           </CardContent>
